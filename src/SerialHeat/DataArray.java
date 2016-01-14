@@ -223,11 +223,15 @@ public class DataArray {
 	 * prepares nextArr to be swapped and painted and effectively advances
 	 * the simulation by one time-step.
 	 */
-	public void diffuse() {		
+	public void diffuse(int startX, int endX) {	
+		//this is what to do parallel
+		//make a task here, 
 		for (int y=0;y<Y;y++) {
-			for (int x=0;x<X;x++) {
+			for (int x=startX;x<endX;x++) {
+				//System.out.println("x is :" + x);
 				diffusePixel(x,y);
 			}
+			//System.out.println("y is: "+ y);
 		}
 	}
 		

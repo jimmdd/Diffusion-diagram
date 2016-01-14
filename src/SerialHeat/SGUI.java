@@ -40,13 +40,14 @@ public class SGUI implements MouseListener, MouseMotionListener  {
 	private JButton brushUpB;
 	private JButton brushDownB;
 	private static JTextField timeStepBox;
-	private int timeSteps = 5000;
+	private int timeSteps = 500;
 	private boolean heaterButtonActive = false;
 	private boolean insulatorButtonActive = false;
 	private boolean hotSpotButtonActive = false;
 	private int guiWidth;
 	private int guiHeight;
 	private boolean isRunning;
+	public int count=0;
 	
 	// Constants.
 	private final int HORIZONTAL_PADDING = 18;
@@ -305,109 +306,97 @@ public class SGUI implements MouseListener, MouseMotionListener  {
 	 * 
 	 */
 	public class MyTask extends SimpleTask{
-		public MyTask(int thread) {
+		private int startX;
+		private int endX;
+		
+		public MyTask(int startX, int endX) {
 			super();
-			// TODO Auto-generated constructor stub
+			this.startX = startX;
+			this.endX = endX;
+
 		}
 
 
 		@Override
-		public void run() {
-			double[] temp;
-
-			// Begin running the simulation.
-		
-			for (int i=0;i<timeSteps;i++) {
-
-				// Check if the sim has stopped.
-				if (!isRunning) {
-					isRunning = false;
-					return;
-				}
-				
-				// Update the time step counter.
-				timeStepBox.setText("Time: "+(i+1)+"/"+timeSteps);
-				
+		public void run() {//update part of the board
 				// Calculate the heat values for the next time step.
-				
-				d.diffuse();
-
-				// Rotate the backing arrays.
-				temp = d.getCurrentArray();
-				d.setCurrentArray(d.getNextArray());
-				d.setNextArray(temp);
-				
-				// Repaint the JPanel.
-				gp.validate();
-				gp.repaint();
-				
-			}
-		    
-			// Turn off the run button.
-			runB.setBackground(null);
-			gp.validate(); 
-			gp.repaint();
-			
+				//calculating part of the stuff
+				d.diffuse(startX, endX);		
 		}
 		
 	}
 	public void runSim() {	
 		// Check which button are active.
-		if (heaterButtonActive) {
-			heaterButtonActive = false;
-			heaterB.setBackground(null);
-			gp.removeMouseListener(this);
-			gp.removeMouseMotionListener(this);
-			gp.validate();
-			gp.repaint();
-		} else if (hotSpotButtonActive) {
-			hotSpotButtonActive = false;
-			hotSpotB.setBackground(null);
-			gp.removeMouseListener(this);
-			gp.removeMouseMotionListener(this);
-			gp.validate();
-			gp.repaint();
-		} else if (insulatorButtonActive) {
-			insulatorButtonActive = false;
-			insulatorB.setBackground(null);
-			gp.removeMouseListener(this);
-			gp.removeMouseMotionListener(this);
-			gp.validate();
-			gp.repaint();
-		}
-		
-		
-		long start = System.currentTimeMillis();
-		SimpleExecutor e =	new	SimpleExecutor();
-		if(e.getCores() == 2) {
+				long start = System.currentTimeMillis();
+				if (heaterButtonActive) {
+					heaterButtonActive = false;
+					heaterB.setBackground(null);
+					gp.removeMouseListener(this);
+					gp.removeMouseMotionListener(this);
+					gp.validate();
+					gp.repaint();
+				} else if (hotSpotButtonActive) {
+					hotSpotButtonActive = false;
+					hotSpotB.setBackground(null);
+					gp.removeMouseListener(this);
+					gp.removeMouseMotionListener(this);
+					gp.validate();
+					gp.repaint();
+				} else if (insulatorButtonActive) {
+					insulatorButtonActive = false;
+					insulatorB.setBackground(null);
+					gp.removeMouseListener(this);
+					gp.removeMouseMotionListener(this);
+					gp.validate();
+					gp.repaint();
+				}
+				
+				int x = guiWidth;
+			    double[] temp;
+				SimpleExecutor e = new SimpleExecutor();
 			
-			SimpleTask t1 = new SimpleTask(1);
-			SimpleTask t2 = new SimpleTask(2);
-			t1.run();
-			t2.run();
+				MyTask t1 = new MyTask(0,x/2);
+				MyTask t2 = new MyTask(x/2,x);
+				
+				// Begin running the simulation.
+				for (int i=0;i<timeSteps;i++) {
+					// Check if the sim has stopped.
+					if (!isRunning) {
+						isRunning = false;
+						return;
+					}
+					
+					// Update the time step counter.
+					timeStepBox.setText("Time: "+(i+1)+"/"+timeSteps);
+					
 
-		} else if(e.getCores() == 4){
-			SimpleTask t1 = new SimpleTask(1);
-			SimpleTask t2 = new SimpleTask(2);
-			SimpleTask t3 = new SimpleTask(3);
-			SimpleTask t4 = new SimpleTask(4);
-			t1.run();
-			t2.run();
-			t3.run();
-			t4.run();
-
-		}		
-		
+					//submit them to simple executor
+					e.submit(t1);
+					t1.finish();
+					//second task
+					e.submit(t2);
+					
+					t2.finish();
+					// Rotate the backing arrays.
+					temp = d.getCurrentArray();
+					d.setCurrentArray(d.getNextArray());
+					d.setNextArray(temp);
+					count++;
+					// Repaint the JPanel.
+					gp.validate();
+					gp.repaint();
+					
+				}
+			    System.out.println("total running times: "+count);
+			    
+				// Turn off the run button.
+				runB.setBackground(null);
+				gp.validate(); 
+				gp.repaint();
+				System.out.println("Sim took " + (System.currentTimeMillis() - start));
+			}
 	
 		
-	    
-		// Turn off the run button.
-		runB.setBackground(null);
-		gp.validate(); 
-		gp.repaint();
-		System.out.println("Sim took " + (System.currentTimeMillis() - start));
-		e.terminate();
-	}
 	
 	/* Helper method to add the buttons to the JFrame */
 	private void addBaselineComponents(Container pane, ArrayList<JComponent> list) {
