@@ -40,7 +40,7 @@ public class SGUI implements MouseListener, MouseMotionListener  {
 	private JButton brushUpB;
 	private JButton brushDownB;
 	private static JTextField timeStepBox;
-	private int timeSteps = 500;
+	private int timeSteps = 5000;
 	private boolean heaterButtonActive = false;
 	private boolean insulatorButtonActive = false;
 	private boolean hotSpotButtonActive = false;
@@ -372,11 +372,11 @@ public class SGUI implements MouseListener, MouseMotionListener  {
 
 					//submit them to simple executor
 					e.submit(t1);
-					t1.finish();
-					//second task
 					e.submit(t2);
 					
+					t1.finish();
 					t2.finish();
+					
 					// Rotate the backing arrays.
 					temp = d.getCurrentArray();
 					d.setCurrentArray(d.getNextArray());
